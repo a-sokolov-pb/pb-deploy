@@ -65,6 +65,7 @@ constant string IS_DEP_TEMPLATE_COPY_ARTIFACT = '~r~n		<mkdir dir="@dir" />&
 ~r~n		<move file="${temp.dir}\\@package.file"&
 ~r~n			tofile="@file" />'
 end variables
+
 forward prototypes
 protected function string generate_by_properties (readonly n_command_param an_param, readonly n_build_properties an_properties) throws exception
 private function string get_packages_list (readonly n_dependency_definition an_dep_definition, readonly string as_repository_type, readonly string as_repository_url, readonly string as_postfix, readonly boolean ab_credentials)
@@ -85,17 +86,22 @@ if isvalid(ln_dep_definition) then
 	ln_repository = ln_dep_definition.get_repository()
 	if isvalid(ln_repository) then
 		ls_repository_type = ln_repository.get_type()
-		ls_repository_url = ln_repository.get_value()
 		
 		choose case ls_repository_type
-			case IS_TYPE_FOLDER
-				if not right(ls_repository_url, 2) = "\\" then
-					ls_repository_url += "\\"
-				end if
-			case IS_TYPE_URL
-				if not right(ls_repository_url, 1) = "/" then
-					ls_repository_url += "/"
-				end if
+			case IS_TYPE_FOLDER, IS_TYPE_URL
+				ls_repository_url = ln_repository.get_value()
+				
+				choose case ls_repository_type
+					case IS_TYPE_FOLDER
+						if not right(ls_repository_url, 2) = "\\" then
+							ls_repository_url += "\\"
+						end if
+					case IS_TYPE_URL
+						if not right(ls_repository_url, 1) = "/" then
+							ls_repository_url += "/"
+						end if
+				end choose
+				
 		end choose
 		
 		if ls_repository_type = "" or ls_repository_type = IS_TYPE_URL then
