@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="pb-project-starter" basedir="." default="info">
     <target name="info">
-        <echo>This is a starter for downloadng Ant build.xml from Nexus</echo>
+        <echo>This is a starter for downloading Ant build.xml from Nexus</echo>
     </target>
        
     <target name="download-template">
