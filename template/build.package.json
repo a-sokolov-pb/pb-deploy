@@ -1,0 +1,72 @@
+{
+  "name": "",
+  "version": "1.0",
+  "description": "",
+  "application": {
+    "name": "",
+    "library": ".pbl",
+    "target": ".pbt",
+    "ws": ".pbw"
+  },
+  "deploy": {
+    "exe": ".exe",
+    "pbr": ".pbr",
+    "favicon": "favicon.ico",
+    "zip": ".zip",
+    "resources": [
+      "folder",
+      "folder\\folder"
+    ]
+  },
+  "test": {
+    "script": "test.all"
+  },
+  "antProperties": {
+    "property1": "",
+    "property2": {
+      "info": "",
+      "value": ""
+    }
+  },
+  "libraries": {
+    "library.pbl": "pbl\\library-folder",
+    "library.pbd": {
+      "dir": "pbd\\library-folder",
+      "scope": "default|test|dev|runtime"
+    }
+  },
+  "dependencies": {
+    "dir": "",
+    "repository": {
+      "type": "disk|url",
+      "value": "D:\\work\\PB.Repository|http://nexus.ru:8081/nexus/content/groups/your_group"
+    },
+    "libraries": {
+      "groupId@artifactId1": "1.0",
+      "groupId@artifactId2": {
+        "version": "1.0",
+        "dir": "pbd.dev",
+        "name": "file_name.pbd",
+        "scope": "default|test|dev|runtime"
+      }
+    },
+    "packages": {
+      "groupId@artifactId1": {
+        "version": "1.0",
+        "artifacts": {
+          "artifactId1": "pbd",
+          "artifactId2": "pbd",
+          "artifactId3": "pbd",
+          "artifactId4": {
+            "type": "pbd",
+            "name": "file_name.pbd"
+          },
+          "artifactId5": {
+            "type": "pbx",
+            "file": ".\\file_name.pbx"
+          }
+        }
+      }
+    }
+  }
+}

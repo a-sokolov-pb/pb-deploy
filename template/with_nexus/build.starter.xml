@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="pb-project-starter" basedir="." default="info">
+    <target name="info">
+        <echo>This is a starter for downloadng Ant build.xml from Nexus</echo>
+    </target>
+       
+    <target name="download-template">
+        <echo>Downloading build.xml template...</echo>
+        <get src="https://github.com/a-sokolov-pb/pb-repo/blob/master/ru/a-sokolov/pb/deploy/build-xml/1.0.0/build-xml-1.0.0.xml?raw=true"
+             dest="build.xml" />
+    </target>
+    
+    <target name="run-build">
+        <echo>Run build.xml clean and make-project targets...</echo>
+        <ant antfile="build.xml" 
+             target="clean"
+             inheritRefs="true">
+        </ant>
+        <ant antfile="build.xml" 
+             target="make-project"
+             inheritRefs="true">
+        </ant>
+    </target>
+    
+    <target name="update-dependencies" depends="download-template">
+        <echo>Update project dependencies...</echo>
+        <ant antfile="build.xml" 
+             target="dependencies"
+             inheritRefs="true">
+        </ant>
+    </target>
+</project>

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="pb-project-build" basedir="." default="info">
+    <target name="info">
+        <echo>This is an ANT deployment file</echo>
+    </target>
+   
+    <!-- Файл PowerGen полной сборки приложения с тестами -->
+    <property name="powergen.test.file" value="build.test.gen" />
+    <!-- Файл PowerGen релизной сборки приложения, без тестов -->
+    <property name="powergen.release.file" value="build.release.gen" />
+    <!-- Имя лог файла PowerGen'а -->
+    <property name="log.file" value="pgerror.log" />
+    <!-- Каталог дистрибутива приложения -->
+    <property name="distrib.dir" location="distrib" />
+    <!-- Каталог, куда будут помещаться все артефакты сборки приложения (.exe, .pbd, .dll и т.д.) -->
+    <property name="target.dir" location="target" />
+    <!-- Конфигурационный JSON файл, где храним описание всего проекта -->
+    <property name="config.file" location="build.package.json" />
+    <!-- Файл дополнительных пропертей -->
+    <property name="properties.file" value="build.properties" />
+    <!-- Итоговый файлы, только ошибок, работы PowerGen'а -->
+    <property name="powergen.output.log.file" value="powergen.output.log" />
+    <!-- PBDeployment API properties -->
+    <property name="deploy-api.dir" location="utils/pb_deploy" />
+    <property name="deploy-api.exe" value="${deploy-api.dir}/pb_deploy.exe" />
+    <!-- PBUnitTest properties -->
+    <property name="unit-test.dir" location="utils/pb_unit_test" />
+    <property name="unit-test.exe" value="${unit-test.dir}/pb_unit_test.exe" />
+    
+    <!-- Environment -->
+    <property environment="env" />
+    <!-- Properties -->
+    <property file="${properties.file}" />
+    <!-- Project build.xml -->
+    <import file="build.nested.xml" />
+    
+    <!-- Парсинг и вывод в консоль содержимого powergen.log файла. -->
+    <target name="parse-powergen-log-and-print">
+        <property name="powergen.log.file" location="powergen.log" />
+    
+        <delete failonerror="false">
+            <fileset dir="." includes="${powergen.output.log.file}" />
+        </delete>
+        <exec executable="${deploy-api.exe}" failonerror="false">
+            <arg value="parse" />
+            <arg value="/powergen.log=${powergen.log.file}" />
+        </exec>
+        
+        <available file="${powergen.output.log.file}" property="powergen.output.exists" />
+        <antcall target="print-powergen-output" />
+    </target>
+    
+    <!-- Вывод в консоль содержимого файла powergen.output.log файла. -->
+    <target name="print-powergen-output" if="powergen.output.exists">
+        <loadresource property="powergen.output">
+            <file file="${powergen.output.log.file}" />
+        </loadresource>
+        <echo>${powergen.output}</echo>
+    </target>
+    
+    <!-- Создание файлов окружения по описанию build.package.json файла. -->
+    <target name="make-environment">
+        <delete failonerror="false">
+            <fileset dir="." includes="pb_deployment.*.log" />
+            <fileset dir="." includes="${powergen.test.file} ${powergen.release.file} ${properties.file} *.pbr" />
+        </delete>
+        <exec executable="${deploy-api.exe}" failonerror="false">
+            <arg value="deploy" />
+            <arg value="/gen:test=${powergen.test.file}" />
+            <arg value="/gen:release=${powergen.release.file}" />
+            <arg value="/ant:properties=${properties.file}" />
+            <arg value="/pbr" />
+            <arg value="/config.file=${config.file}" />
+        </exec>
+        
+        <available file="pb_deployment.error.log" property="make.environment.error" />
+        <antcall target="print-deploy-error" />
+        <fail message="Failed to make the build environment" if="make.environment.error" />
+        
+        <loadresource property="deploy.output">
+            <file file="pb_deployment.output.log" />
+        </loadresource>
+        <echo>${deploy.output}</echo>
+        
+        <loadproperties srcFile="${properties.file}" />
+    </target>
+    
+    <!-- Вывод лога ошибок файла pb_deployment.error.log. -->
+    <target name="print-deploy-error" if="make.environment.error">
+        <loadresource property="deploy.error">
+            <file file="pb_deployment.error.log" />
+        </loadresource>
+        <echo>${deploy.error}</echo>
+    </target>
+    
+    <!-- Очиста каталога проекта. Уделение .pbl, .pbd, .exe и .log файлов. -->
+    <target name="clean" depends="clean.temp, make-environment">
+        <echo>Cleaning ${project.name}...</echo>
+        <delete includeemptydirs="true" failonerror="false">
+            <fileset dir="./pbl" includes="**/*.pbl **/*.pbd" />
+            <fileset dir="." includes="*.pbl *.exe *.pbd" />
+            <fileset dir="." includes="*.log" excludes="pb_deployment.*.log"/>
+        </delete>
+        <antcall target="nested-clean" />
+    </target>
+    
+    <!-- Удаление temp каталога. -->
+    <target name="clean.temp">
+        <echo>Cleaning temp folder...</echo>
+        <delete dir="temp" />
+    </target>
+    
+    <!-- Таргет запускающий подряд compile, test, build и package. -->
+    <target name="make-project">
+        <antcall target="compile" />
+        <antcall target="test" />
+        <antcall target="build" />
+        <antcall target="package" />
+    </target>
+    
+    <!-- Сборка .pbl файлов из сорцов (.sr*). -->
+    <target name="compile">
+        <echo>Importing sources...</echo>
+        <exec executable="cmd">
+            <arg value="/c start /wait pwrgn9 /Q /J=${powergen.test.file} /PBG /NRP" />
+        </exec>
+
+        <!-- Sleep for 5 seconds to let Windows release all files to allow us move pgerror.lof if exists -->
+        <sleep seconds="5" />
+        <!-- Rename pgerror.log file for the history -->
+        <move file="${log.file}" 
+            tofile="pgerror.import.log"
+            failonerror="false"
+        />
+
+        <!-- In case Bootstrap Import crashed - try synchronizing as a last effort -->
+        <antcall target="synchronize" />
+        <antcall target="compile.fail" />
+        <antcall target="nested-compile" />
+    </target>
+    
+    <!-- Проверка результата сборки .pbl файлов. -->
+    <target name="compile.fail" depends="compile.fail.check" if="compile.fail.run">
+        <antcall target="parse-powergen-log-and-print" />
+        <fail message="PowerGen failed to compile the project" />
+    </target>
+    
+    <!-- Таргет для проверки наличия файла ошибок сборки PowerGen. Выполняется если не указан ключ -DsynchIfImportCrashed=true. -->
+    <target name="compile.fail.check" unless="synchIfImportCrashed">
+        <available file="${log.file}" property="compile.fail.run" />
+    </target>
+    
+    <!-- Блок синхронизации сборки .pbl файлов. -->
+    <target name="synchronize" depends="synchronize.check" if="synchronize.run">
+        <echo>Import crashed - performing synchronization...</echo>
+        <exec executable="cmd">
+            <arg value="/c start /wait pwrgn9 /Q /K=${powergen.test.file} /PBG /RP" />
+        </exec>
+        <!-- Sleep for 5 seconds to let Windows release all files to allow us move pgerror.lof if exists -->
+        <sleep seconds="5" />
+        <!-- Rename pgerror.log file for the history -->
+        <move file="${log.file}" 
+            tofile="pgerror.synch.log"
+            failonerror="false"
+        />
+    </target>
+    
+    <!-- Тагрет для проверки запуска блока синхронизации. Выполняется если указан ключ -DsynchIfImportCrashed=true. -->
+    <target name="synchronize.check" if="synchIfImportCrashed">
+        <available file="${log.file}" property="synchronize.run"/>
+    </target>
+    
+    <!-- Запуск юнит-тестов. Не выполняется если указан ключ -DskipTests=true. -->
+    <target name="test" unless="skipTests">
+        <delete failonerror="false">
+            <fileset dir="." includes="pb_unit_test.*.log" />
+        </delete>
+        <property name="project.target" location="${project.target}" />
+        
+        <echo>Run tests (${test.script})...</echo>
+        <exec executable="${unit-test.exe}" failonerror="false">
+            <arg value="test" />
+            <arg value="/${test.script}" />
+            <arg value="/target=${project.target}" />
+        </exec>
+        
+        <available file="pb_unit_test.error.log" property="test.error.exists" />
+        <antcall target="print-test-error" />
+        
+        <condition property="test.output.exists">
+            <and>
+                <available file="pb_unit_test.output.log" />
+                <length file="pb_unit_test.output.log" when="greater" length="0" />
+            </and>
+        </condition>
+        <antcall target="print-test-output" />
+        
+        <antcall target="nested-test" />
+    </target>
+    
+    <!-- Вывод лога ошибок запуска тестов. -->
+    <target name="print-test-error" if="test.error.exists">
+        <loadresource property="test.error">
+            <file file="pb_unit_test.error.log" />
+        </loadresource>
+        <echo>${test.error}</echo>
+    </target>
+    
+    <!-- Вывод лога работы тестов. -->
+    <target name="print-test-output" if="test.output.exists">
+        <loadresource property="test.output">
+            <file file="pb_unit_test.output.log" />
+        </loadresource>
+        <echo>${test.output}</echo>
+    </target>
+    
+    <!-- Сборка .pbd и .exe файлов. -->
+    <target name="build">
+        <echo>Building all...</echo>
+        <exec executable="cmd">
+            <arg value="/c start /wait pwrgn9 /Q /A=${powergen.release.file}" />
+        </exec>
+        
+        <antcall target="parse-powergen-log-and-print" />
+        <!-- The only reason to figure out if PowerGen failed or not is to check the existence of pgerror.log file -->
+        <available file="${log.file}" property="powergen.build.error" />
+        <fail message="PowerGen failed to build the project" if="powergen.build.error" />
+        <antcall target="nested-build" />
+    </target>
+    
+    <!-- Fills target directory to contain fully runnable executable -->
+    <target name="package">
+        <!-- Creates target directory -->
+        <mkdir dir="${target.dir}" />
+        <delete includeemptydirs="true" failonerror="false">
+            <fileset dir="${target.dir}" includes="**/*" />
+        </delete>
+        <!-- Move everything related to the client executable only to target dir -->
+        <available file="./pbd" type="dir" property="pbd.folder.exists" />
+        <antcall target="copy-from-pbd-folder" />
+        <copy todir="${target.dir}" flatten="true">
+            <fileset dir="./pbl" includes="**/*.pbd" />
+            <fileset dir="." includes="*.pbd *.exe *.dll *.pbx README.md" />
+        </copy>
+        <antcall target="nested-package">
+            <param name="target.dir" value="${target.dir}" />
+        </antcall>
+        
+        <!-- Make ZIP file -->
+        <zip basedir="${target.dir}" destfile="${distrib.dir}/${zip.package}"/>
+    </target>
+    
+    <!-- Копирование содержимого из pbd каталога в target, если первый существует. -->
+    <target name="copy-from-pbd-folder" if="pbd.folder.exists">
+        <copy todir="${target.dir}" flatten="true">
+            <fileset dir="./pbd" includes="**/*.pbd" />
+        </copy>
+    </target>
+    
+    <!-- Запуск приложения. -->
+    <target name="run">
+        <echo>Run ${project.name}</echo>
+        <exec executable="cmd">
+            <arg value="/c start ${target.dir}/${project.executable}" />
+        </exec>
+    </target>
+</project>

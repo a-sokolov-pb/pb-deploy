@@ -1,0 +1,11 @@
+Save Format v3.0(19990112)
+@begin Libraries
+ "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl" "";
+@end;
+@begin Objects
+ "pbl\\pb_deploy_gui\\m_pb_deploy.srm" "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl";
+ "pbl\\pb_deploy_gui\\w_pb_deploy.srw" "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl";
+ "pbl\\pb_deploy_gui\\d_deploy_log.srd" "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl";
+ "pbl\\pb_deploy_gui\\w_about.srw" "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl";
+ "pbl\\pb_deploy_gui\\d_deploy_params.srd" "pbl\\pb_deploy_gui\\pb_deploy_gui.pbl";
+@end;

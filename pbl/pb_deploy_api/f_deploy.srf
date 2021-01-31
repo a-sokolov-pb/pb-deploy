@@ -1,0 +1,15 @@
+$PBExportHeader$f_deploy.srf
+global type f_deploy from function_object
+end type
+
+forward prototypes
+global function n_deploy_helper f_deploy ()
+end prototypes
+
+global function n_deploy_helper f_deploy ();if not isvalid(n_deploy_helper) then
+	n_deploy_helper = create n_deploy_helper
+end if
+
+return n_deploy_helper
+end function
+

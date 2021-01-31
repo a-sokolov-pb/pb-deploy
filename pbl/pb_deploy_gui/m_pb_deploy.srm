@@ -1,0 +1,112 @@
+$PBExportHeader$m_pb_deploy.srm
+forward
+global type m_pb_deploy from menu
+end type
+type m_file from menu within m_pb_deploy
+end type
+type m_exit from menu within m_file
+end type
+type m_file from menu within m_pb_deploy
+m_exit m_exit
+end type
+type m_help from menu within m_pb_deploy
+end type
+type m_abount from menu within m_help
+end type
+type m_help from menu within m_pb_deploy
+m_abount m_abount
+end type
+global type m_pb_deploy from menu
+m_file m_file
+m_help m_help
+end type
+end forward
+
+global type m_pb_deploy from menu
+m_file m_file
+m_help m_help
+end type
+global m_pb_deploy m_pb_deploy
+
+on m_pb_deploy.create
+m_pb_deploy=this
+call super::create
+this.text = "m_pb_deploy"
+this.m_file=create m_file
+this.m_help=create m_help
+this.Item[UpperBound(this.Item)+1]=this.m_file
+this.Item[UpperBound(this.Item)+1]=this.m_help
+end on
+
+on m_pb_deploy.destroy
+call super::destroy
+destroy(this.m_file)
+destroy(this.m_help)
+end on
+
+type m_file from menu within m_pb_deploy
+m_exit m_exit
+end type
+
+on m_file.create
+call super::create
+this.text = "File"
+this.m_exit=create m_exit
+this.Item[UpperBound(this.Item)+1]=this.m_exit
+end on
+
+on m_file.destroy
+call super::destroy
+destroy(this.m_exit)
+end on
+
+type m_exit from menu within m_file
+end type
+
+event clicked;close(parentwindow)
+
+return
+end event
+
+on m_exit.create
+call super::create
+this.text = "Exit"
+end on
+
+on m_exit.destroy
+call super::destroy
+end on
+
+type m_help from menu within m_pb_deploy
+m_abount m_abount
+end type
+
+on m_help.create
+call super::create
+this.text = "Help"
+this.m_abount=create m_abount
+this.Item[UpperBound(this.Item)+1]=this.m_abount
+end on
+
+on m_help.destroy
+call super::destroy
+destroy(this.m_abount)
+end on
+
+type m_abount from menu within m_help
+end type
+
+event clicked;open(w_about)
+
+return
+end event
+
+on m_abount.create
+call super::create
+this.text = "About"
+end on
+
+on m_abount.destroy
+call super::destroy
+end on
+

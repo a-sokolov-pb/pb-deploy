@@ -1,0 +1,27 @@
+{
+  "name": "PowerBuilder Deployment API",
+  "version": "1.0",
+  "description": "Приложение для генерации Ant (.xml, .properties), PowerGen (.gen) и .pbt файлов по JSON описанию.",
+  "application": {
+    "name": "pb_deploy",
+    "library": "pb_deploy.pbl",
+    "target": "pb_deploy.pbt",
+    "ws": "pb_deploy.pbw"
+  },
+  "deploy": {
+    "exe": "pb_deploy.exe",
+    "favicon": "favicon.ico",
+    "zip": "pb-deploy.zip",
+    "pbr": "pb_deploy.pbr",
+	"resources": ["assets"]
+  },
+  "libraries": {
+     "pb_deploy.pbl": ".",
+     "pb_deploy_api.pbl": "pbl\\pb_deploy_api",
+     "pb_deploy_gui.pbl": "pbl\\pb_deploy_gui",
+	 "common.pbd": "pbd",
+	 "io.pbd": "pbd",
+	 "json.pbd": "pbd",
+	 "pb_addon.pbd": "pbd"
+  }
+}

@@ -1,0 +1,14 @@
+*.pbl
+*.pbc
+*.log
+*.exe
+*.pbd
+!pbd/*.pbd
+build*.gen
+build*.properties
+/target
+/distrib
+/utils
+/public/binary
+/public/pbl
+/public/sample

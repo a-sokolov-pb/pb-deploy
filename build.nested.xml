@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="pb-project-nested" basedir=".">
+    <!-- This is an ANT nested build file. -->
+    
+    <!-- Environment -->
+    <property environment="env" />
+    <!-- Properties -->
+    <property file="build.properties" />
+    
+    <target name="nested-clean">
+        <!-- Your implementation -->
+    </target>
+    
+    <target name="nested-compile">
+        <!-- Your implementation -->
+    </target>
+    
+    <target name="nested-test">
+        <!-- Your implementation -->
+    </target>
+    
+    <target name="nested-build">
+        <!-- Your implementation -->
+    </target>
+    
+    <target name="nested-package">
+        <!-- 
+            Your implementation!
+            Target properties:
+                ${target.dir}
+        -->
+		<delete failonerror="false">
+            <fileset dir="${target.dir}" includes="pb_unit_test_core.pbd" />
+        </delete>
+    </target>
+</project>
